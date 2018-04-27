@@ -16,6 +16,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.highgui.HighGui;
 
 import it.polito.elite.teaching.cv.utils.Utils;
 import javafx.event.ActionEvent;
@@ -24,10 +25,8 @@ import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+
 /**
- * The controller for our application, where the application logic is
- * implemented. It handles the button for starting/stopping the camera and the
- * acquired video stream.
  *
  * @author <a href="mailto:diegoifrn@gmail.com">Diego Lemos</a>
  * @version 1.0 (2018-04-23)
@@ -42,22 +41,16 @@ public class FXHelloCVController
 	// the FXML image view
 	@FXML
 	private ImageView currentFrame;
-	
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
 	// the OpenCV object that realizes the video capture
 	private VideoCapture capture = new VideoCapture();
-	// a flag to change the button behavior
 	private boolean cameraActive = false;
-	// the id of the camera to be used
 	private static int cameraId = 0;
-	
-	/**
-	 * The action triggered by pushing the button on the GUI
-	 *
-	 * @param event
-	 *            the push button event
-	 */
+	final static int  FRAME_WIDTH = 640;
+	final static int FRAME_HEIGHT = 480;
+	final static int CV_CAP_PROP_FRAME_WIDTH = 3;
+	final static int CV_CAP_PROP_FRAME_HEIGHT = 4;
 	@FXML
 	protected void startCamera(ActionEvent event)
 	{
@@ -65,7 +58,8 @@ public class FXHelloCVController
 		{
 			// start the video capture
 			this.capture.open(cameraId);
-			
+			this.capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
+			this.capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
 			// is the video stream available?
 			if (this.capture.isOpened())
 			{
@@ -94,18 +88,13 @@ public class FXHelloCVController
 			}
 			else
 			{
-				// log the error
 				System.err.println("Impossible to open the camera connection...");
 			}
 		}
 		else
 		{
-			// the camera is not active at this point
 			this.cameraActive = false;
-			// update again the button content
 			this.button.setText("Start Camera");
-			
-			// stop the timer
 			this.stopAcquisition();
 		}
 	}
@@ -131,13 +120,13 @@ public class FXHelloCVController
 				// if the frame is not empty, process it
 				if (!frame.empty())
 				{
-					Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+					//Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2GRAY);
+					frame = process(frame);
 				}
 				
 			}
 			catch (Exception e)
 			{
-				// log the error
 				System.err.println("Exception during the image elaboration: " + e);
 			}
 		}
@@ -215,9 +204,7 @@ public class FXHelloCVController
 
 	    return (ret != null);
 	}
-	/**
-	 * 
-	 */
+	
 	public static MatOfPoint getSquareContours(List<MatOfPoint> contours) {
 
 	    MatOfPoint squares = null;
@@ -229,26 +216,24 @@ public class FXHelloCVController
 
 	    return squares;
 	}
-	/**
-	 * processar a imagem
-	 */
-	public void process(Mat rgbaImage) 
+	/*processar a imagem*/
+	public Mat process(Mat rgbaImage) //void
     {
+		Mat threshold = new Mat();
 		Mat mPyrDownMat = rgbaImage;
-        //Imgproc.pyrDown(rgbaImage, mPyrDownMat);
-       // Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
-		Mat mHsvMat = new Mat();//se der errado, tirar new
-		Mat mMask = new Mat();//se der errado, tirar new
-		Mat mDilatedMask = new Mat();//se der errado, tirar new
-		Mat mHierarchy = new Mat();//se der errado, tirar new
-    Imgproc.cvtColor(mPyrDownMat, mHsvMat, Imgproc.COLOR_RGB2HSV_FULL);
+        Imgproc.pyrDown(rgbaImage, mPyrDownMat);
+        Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
+		//Mat mMask = new Mat();//se der errado, tirar new
+		//Mat mDilatedMask = new Mat();//se der errado, tirar new
+	//	Mat mHierarchy = new Mat();//se der errado, tirar new
+    Imgproc.cvtColor(mPyrDownMat, mPyrDownMat, Imgproc.COLOR_RGB2HSV_FULL);
 
-    Core.inRange(mHsvMat, new Scalar(0,0,200), new Scalar(0,0,255), mMask);//achar cor vermelha
-    Imgproc.dilate(mMask, mDilatedMask, new Mat());
-
+    Core.inRange(mPyrDownMat, new Scalar(160, 100, 100), new Scalar(179, 255, 255), threshold);//achar cor vermelha
+    Imgproc.dilate(mPyrDownMat, mPyrDownMat, new Mat());  
+    /* 
     List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 
-    Imgproc.findContours(mDilatedMask, contours, mHierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+    Imgproc.findContours(mPyrDownMat, contours, mPyrDownMat, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
     MatOfPoint squareContours = getSquareContours(contours);//junção aqui
     
     // Find max contour area
@@ -277,5 +262,6 @@ public class FXHelloCVController
             contours.add(squareContours);
        // }
    // }
+   */         return threshold;
 } 
 }
