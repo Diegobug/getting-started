@@ -1,6 +1,7 @@
 package it.polito.elite.teaching.cv;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 //import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -16,7 +17,6 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
-import org.opencv.highgui.HighGui;
 
 import it.polito.elite.teaching.cv.utils.Utils;
 import javafx.event.ActionEvent;
@@ -47,8 +47,8 @@ public class FXHelloCVController
 	private VideoCapture capture = new VideoCapture();
 	private boolean cameraActive = false;
 	private static int cameraId = 0;
-	final static int  FRAME_WIDTH = 640;
-	final static int FRAME_HEIGHT = 480;
+	final static int  FRAME_WIDTH = 1600;
+	final static int FRAME_HEIGHT = 1200 ;
 	final static int CV_CAP_PROP_FRAME_WIDTH = 3;
 	final static int CV_CAP_PROP_FRAME_HEIGHT = 4;
 	@FXML
@@ -209,9 +209,10 @@ public class FXHelloCVController
 
 	    MatOfPoint squares = null;
 	    for (MatOfPoint c : contours) {
-	        if (isContourSquare(c)) 
+	        if (isContourSquare(c)) {
 	            if (squares == null)
-	                squares = c;      
+	                squares = c;   
+	        }else {System.out.println("não é quadrado");}
 	    }
 
 	    return squares;
@@ -223,45 +224,21 @@ public class FXHelloCVController
 		Mat mPyrDownMat = rgbaImage;
         Imgproc.pyrDown(rgbaImage, mPyrDownMat);
         Imgproc.pyrDown(mPyrDownMat, mPyrDownMat);
-		//Mat mMask = new Mat();//se der errado, tirar new
-		//Mat mDilatedMask = new Mat();//se der errado, tirar new
-	//	Mat mHierarchy = new Mat();//se der errado, tirar new
-    Imgproc.cvtColor(mPyrDownMat, mPyrDownMat, Imgproc.COLOR_RGB2HSV_FULL);
+		Mat mHierarchy = new Mat();//se der errado, tirar new
+        Imgproc.cvtColor(mPyrDownMat, mPyrDownMat, Imgproc.COLOR_RGB2HSV_FULL);
 
-    Core.inRange(mPyrDownMat, new Scalar(160, 100, 100), new Scalar(179, 255, 255), threshold);//achar cor vermelha
-    Imgproc.dilate(mPyrDownMat, mPyrDownMat, new Mat());  
-    /* 
-    List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-
-    Imgproc.findContours(mPyrDownMat, contours, mPyrDownMat, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-    MatOfPoint squareContours = getSquareContours(contours);//junção aqui
+        Core.inRange(mPyrDownMat, new Scalar(160, 100, 100), new Scalar(179, 255, 255), threshold);//achar cor vermelha//threshold
+        Imgproc.dilate(threshold, threshold, new Mat());  
     
-    // Find max contour area
-  //  double maxArea = 0;
-    //Iterator<MatOfPoint> each = contours.iterator();
-   // while (each.hasNext()) 
-   // {
-       // MatOfPoint wrapper = each.next();
-   //     double area = Imgproc.contourArea(squareContours);
-   //     if (area > maxArea)
-   //         maxArea = area;
-   // }
-
-    //Imgproc.approxPolyDP(mSpectrum, approxCurve, epsilon, closed);
-
-    // Filter contours by area and resize to fit the original image size
-    contours.clear();
-    //each = contours.iterator();
-
-   // while (each.hasNext()) 
-   // {
-     //   MatOfPoint contour = each.next();
-       // if (Imgproc.contourArea(contour) > mMinContourArea*maxArea) 
-       // {
-            Core.multiply(squareContours, new Scalar(4,4), squareContours);
-            contours.add(squareContours);
-       // }
-   // }
-   */         return threshold;
+        List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+        Imgproc.findContours(threshold, contours, mHierarchy,Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);//Imgproc.RETR_LIST//threshold
+   
+    
+        MatOfPoint squareContours = getSquareContours(contours);//junção aqui
+        if(squareContours!=null)System.out.println( Imgproc.boundingRect(squareContours).y);  
+   
+ 
+    
+          return threshold;
 } 
 }
