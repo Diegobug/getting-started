@@ -1,8 +1,9 @@
 package it.polito.elite.teaching.cv;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Iterator;
-//import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,6 +45,7 @@ public class FXHelloCVController
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
 	// the OpenCV object that realizes the video capture
+	private PrintWriter writer;
 	private VideoCapture capture = new VideoCapture();
 	private boolean cameraActive = false;
 	private static int cameraId = 0;
@@ -51,9 +53,13 @@ public class FXHelloCVController
 	final static int FRAME_HEIGHT = 1200 ;
 	final static int CV_CAP_PROP_FRAME_WIDTH = 3;
 	final static int CV_CAP_PROP_FRAME_HEIGHT = 4;
+	
 	@FXML
-	protected void startCamera(ActionEvent event)
+	protected void startCamera(ActionEvent event) throws FileNotFoundException, UnsupportedEncodingException
 	{
+		//abre arquivo para escrever o resultado
+		if(writer==null)
+		writer = new PrintWriter("resultado.txt", "UTF-8");		
 		if (!this.cameraActive)
 		{
 			// start the video capture
@@ -64,16 +70,13 @@ public class FXHelloCVController
 			if (this.capture.isOpened())
 			{
 				this.cameraActive = true;
-				
 				// grab a frame every 33 ms (30 frames/sec)
 				Runnable frameGrabber = new Runnable() {
-					
 					@Override
 					public void run()
 					{
 						// effectively grab and process a single frame
 						Mat frame = grabFrame();
-						//
 						// convert and show the frame
 						Image imageToShow = Utils.mat2Image(frame);
 						updateImageView(currentFrame, imageToShow);
@@ -96,6 +99,7 @@ public class FXHelloCVController
 			this.cameraActive = false;
 			this.button.setText("Start Camera");
 			this.stopAcquisition();
+			writer.close();
 		}
 	}
 	
@@ -235,10 +239,12 @@ public class FXHelloCVController
    
     
         MatOfPoint squareContours = getSquareContours(contours);//junção aqui
-        if(squareContours!=null)System.out.println( Imgproc.boundingRect(squareContours).y);  
-   
- 
-    
-          return threshold;
+        if(squareContours!=null) 
+        	{	
+        		int y = Imgproc.boundingRect(squareContours).y;
+        		System.out.println(y);
+        		writer.println(y);
+        	}
+        return threshold;
 } 
 }
